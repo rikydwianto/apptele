@@ -34,7 +34,6 @@ $chat_id = $updates['message']['chat']['id'];
 $nama-"";
 $nik="";
 $id=$chat_id;
-
 if (strpos($pesan, "/start") === 0) {
 	$location = substr($pesan, 5);
 	$pesan_balik[]= "Hallo Selamat datang di Bot Komida Pagaden, Bot ini khusus untuk update lokasi center agar lebih mudah";
@@ -69,8 +68,41 @@ $ceklogin = mysqli_query($conn,"select * from karyawan where id_telegram='$chat_
 		$id = $data['id_karyawan'];
 				
 		if($pesan!=null){
-			if($pesan=='help' || $pesan =="bantu"){
-				$pesan_balik[]="Sharelock Lokasi center, lalu masukan nomor center /center no_center";
+			if($pesan=='/start' || strpos($pesan, "/login") === 0){
+				//$pesan_balik[]="Sharelock Lokasi center, lalu masukan nomor center /center no_center";
+			}
+			else if($pesan=='/help' || $pesan =="/bantu"){
+				$pesan_balik[]="Sharelock Lokasi center, lalu masukan nomor center /center no_center. Untuk mencari detail nasabah gunakan /anggota IDanggota";
+			}
+			else if(strpos($pesan, "/anggota") === 0){
+				$idnasabah=explode(" ",$pesan)[1];
+				if($idnasabah!=null){
+					$pesan_balik[]="mencari id  ..";
+					$cari_nasabah = mysqli_query($conn,"SELECT * FROM `daftar_nasabah` WHERE `id_nasabah` = '$idnasabah' ORDER BY `id` DESC limit 0,1");
+					if(mysqli_num_rows($cari_nasabah)){
+						while($dNasabah  =mysqli_fetch_array($cari_nasabah)){
+							$date=date_create($dNasabah['tgl_bergabung']);
+							$date = date_format($date,"d/m/Y");
+
+$pesan_balik[]=urlencode("ID : <strong>$dNasabah[id_detail_nasabah]</strong>
+HARI : <strong>$dNasabah[hari]</strong> 
+Nama Anggota : <strong>$dNasabah[nama_nasabah]</strong> 
+Suami Anggota : <strong>$dNasabah[suami_nasabah]</strong> 
+NIK KTP : <strong>$dNasabah[no_ktp]</strong> 
+No HP : <strong>$dNasabah[hp_nasabah]</strong> 
+Bergabung : <strong>$date</strong> 
+Alamat : <strong>$dNasabah[alamat_nasabah]</strong> 
+Petugas : <strong>$dNasabah[staff]</strong>
+							");							
+						}
+					}
+					else{
+						$pesan_balik[]="ID $idnasabah tidak ditemukan... mohon periksa kembali ";
+					}
+				}
+				else{
+					$pesan_balik[]="Harap memasukan format dengan benar";
+				}
 			}
 			else if(strpos($pesan, "/center") === 0){
 				$center=explode(" ",$pesan)[1];
@@ -88,8 +120,10 @@ $ceklogin = mysqli_query($conn,"select * from karyawan where id_telegram='$chat_
 					else $pesan_balik[]='Data tidak ditemukan silahkan Sharelock Terlebih dahulu';
 				}
 			}
-			else
-			$pesan_balik[]="Perintah tidak ditemukan ketik help / bantu untuk bantuan";
+			else{
+				$pesan_balik[]="Perintah tidak ditemukan ketik help / bantu untuk bantuan";
+				
+			}
 		}
 		else if($lokasi!=null){
 			mysqli_query($conn,"INSERT INTO `data_telegram` (`id`, `longitude`, `latitude`, `id_telegram`) VALUES (NULL, '$lokasi[longitude]', '$lokasi[latitude]', '$chat_id');
