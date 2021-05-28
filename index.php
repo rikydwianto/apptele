@@ -66,7 +66,8 @@ $ceklogin = mysqli_query($conn,"select * from karyawan where id_telegram='$chat_
 		$nama = $data['nama_karyawan'];
 		$nik = $data['nik_karyawan'];
 		$id = $data['id_karyawan'];
-				
+		$perintah = explode(" ",$pesan)[0];
+		$isi_pesan = explode(" ",$pesan)[1];
 		if($pesan!=null){
 			if($pesan=='/start' || strpos($pesan, "/login") === 0){
 				//$pesan_balik[]="Sharelock Lokasi center, lalu masukan nomor center /center no_center";
@@ -101,8 +102,32 @@ Petugas : <strong>$dNasabah[staff]</strong>
 					}
 				}
 				else{
-					$pesan_balik[]="Harap memasukan format dengan benar";
+					$pesan_balik[]="Harap memasukan format dengan benar <b>/anggota 0001</b>";
 				}
+			}
+			else if(strpos($pesan, "/cek_absen") === 0){
+				$content=file_get_contents("https://komida.co.id/hris/load_belumabsen2.php");
+					$pesan_balik[]="<i>Sedang Mencari ....</i>";
+				  //mengubah standar encoding
+				  $content=utf8_encode($content);
+				//echo count($content);
+				  //mengubah data json menjadi data array asosiatif
+				  $result=(json_decode($content,true));
+				  //print_r($result['data']);
+				  $no = 0;
+					foreach( $result['data'] as $key)
+					{
+						if($key['cabang']=="PAGADEN")
+						{
+							$hitung[]=$key['no'];;
+						}
+					}
+					
+					foreach($hitung as $val){
+						$pesan_balik[] =  urlencode($result['data'][$val-1]['nama']);
+					}
+					$pesan_balik[]="<b>".count($hitung)." Belum Absen</b>";
+					
 			}
 			else if(strpos($pesan, "/center") === 0){
 				$center=explode(" ",$pesan)[1];
@@ -122,7 +147,6 @@ Petugas : <strong>$dNasabah[staff]</strong>
 			}
 			else{
 				$pesan_balik[]="Perintah tidak ditemukan ketik help / bantu untuk bantuan";
-				
 			}
 		}
 		else if($lokasi!=null){
